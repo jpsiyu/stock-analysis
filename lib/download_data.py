@@ -27,7 +27,7 @@ def createUrlQuery(code, reportType='is', period=12, dataType='A', order='asc', 
     } 
     return url, queryData
 
-def fetchDataIntoPandas(url, queryData):
+def fetchDataIntoPandas(url, queryData, header=1):
     opener = request.build_opener()
     opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
     request.install_opener(opener)
@@ -37,6 +37,6 @@ def fetchDataIntoPandas(url, queryData):
     df = pd.DataFrame()
     with request.urlopen(url, data=query) as response:
         data = response.read()
-        df = pd.read_csv(io.StringIO(data.decode('utf-8')), header=1, index_col=0)
+        df = pd.read_csv(io.StringIO(data.decode('utf-8')), header=2, index_col=0) 
         print('Down finished!')
     return df

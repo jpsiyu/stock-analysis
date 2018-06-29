@@ -3,6 +3,7 @@ import time
 from lib.util import log
 from lib import download_data
 import pandas as pd
+import sys
 
 class Statement():
     def __init__(self, code):
