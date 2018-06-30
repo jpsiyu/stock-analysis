@@ -1,6 +1,7 @@
 import pandas as pd
 from urllib import request
 from urllib.parse import urlencode
+from lib.util import log
 import io
 
 def createUrlQuery(code, reportType='is', period=12, dataType='A', order='asc', columnYear=10, number=3):
@@ -37,6 +38,6 @@ def fetchDataIntoPandas(url, queryData, header=1):
     df = pd.DataFrame()
     with request.urlopen(url, data=query) as response:
         data = response.read()
-        df = pd.read_csv(io.StringIO(data.decode('utf-8')), header=2, index_col=0) 
-        print('Down finished!')
+        df = pd.read_csv(io.StringIO(data.decode('utf-8')), header=header, index_col=0) 
+        log('Download finished!')
     return df

@@ -45,13 +45,43 @@ class DCF():
         # discount fcf
         presentValue = lambda i, v: round(v / ((wacc*0.01 + 1) ** (i+1)), 2) 
         discount = [presentValue(i,v) for i, v in enumerate(predict)]
-        dfPredict['Discount fcf'] = discount
+        dfPredict['fcf present'] = discount
         return dfPredict
 
     def terminalValue(self, wacc, fcfEnd, yearNum=5):
         v = fcfEnd * ( 1 + self.perpetuityGrowth * 0.01) / (( wacc - self.perpetuityGrowth) * 0.01)
         vPresent = v / ((1+wacc*0.01) ** yearNum)
-        return round(vPresent, 2)
+        return (round(v,2), round(vPresent, 2))
+
+        
+    def calculationReport(self, beta, taxRate, mvEquity, mvDebt, dfFCF, predictYear=5):
+        coe = self.costOfEquity(beta)
+        cod = self.costOfDebtAfterTax(taxRate)
+        wacc = self.wacc(mvEquity, coe, mvDebt, cod)
+        cagr = self.calCAGR(dfFCF)
+
+        factorData = {
+            'riskFree': [self.riskFree],
+            'riskPremium': [self.riskPremium],
+            'perpetuityGrowth': [self.perpetuityGrowth],
+            'beta': [beta],
+            'costOfEquity': [coe],
+            'costOfDebt': [cod],
+            'wacc': [wacc],
+            'fcfGrowth': [cagr]
+        }
+        factorReport = pd.DataFrame(factorData)
+
+        predictFCF = self.predictFCF(dfFCF, wacc, yearNum=predictYear)
+        endValue, endValuePresent = self.terminalValue(wacc, predictFCF['Free cash flow'].iloc[-1], yearNum=predictYear)
+
+        endValueFuture = [0 for _ in np.arange(predictYear)]
+        endValueFuture[-1] = endValue
+        predictFCF['terminal value'] = endValueFuture 
+        endValueFuture[-1] = endValuePresent
+        predictFCF['terminal value present'] = endValueFuture
+
+        return factorReport, predictFCF
 
 
 
