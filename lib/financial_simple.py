@@ -32,9 +32,13 @@ class FinancialSimple():
     def getPage(self):
         try:
             log('Start Crawling Page...')
-            driver = webdriver.PhantomJS(executable_path='/usr/local//Cellar/phantomjs/2.1.1/bin/phantomjs')
+            option = {
+                'executable_path': '/usr/local//Cellar/phantomjs/2.1.1/bin/phantomjs',
+                'service_log_path': 'temp/ghostdriver.log',
+            }
+            driver = webdriver.PhantomJS(**option)
             driver.get(self.url)
-            time.sleep(10)
+            time.sleep(3)
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             driver.close()
             log('Crawling Page Finish!')
