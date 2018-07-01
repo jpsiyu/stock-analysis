@@ -3,32 +3,32 @@ import numpy as np
 
 class DCF():
     def __init__(self):
-        self.riskFree = 3.6
-        self.riskPremium = 3.5
-        self.perpetuityGrowth = 3
+        self.riskFree = 3.6 * 0.01
+        self.riskPremium = 3.5 * 0.01
+        self.perpetuityGrowth = 3 * 0.01
 
     def costOfEquity(self, beta):
-        coe = self.riskFree * 0.01 + self.riskPremium * 0.01 * beta
-        return round(coe*100, 2)
+        coe = self.riskFree + self.riskPremium * beta
+        return round(coe, 4)
 
     def costOfDebtPreTax(self):
-        return 3
+        return 0.03
 
     def costOfDebtAfterTax(self, taxRate):
         codPreTax = self.costOfDebtPreTax()
-        afterTax = codPreTax * (1 - taxRate * 0.01)
+        afterTax = codPreTax * (1 - taxRate)
         return round(afterTax, 2)
 
     def wacc(self, marketValueEquity, equityCost, marketValueDebt, debtCost):
-        r = (marketValueEquity * equityCost * 0.01 + marketValueDebt * debtCost * 0.01) / (marketValueEquity + marketValueDebt)
-        return round(r*100, 2)
+        r = (marketValueEquity * equityCost + marketValueDebt * debtCost) / (marketValueEquity + marketValueDebt)
+        return round(r, 4)
 
     def calCAGR(self, df):
         start = df.iloc[0]
         end = df.iloc[-1]
         year = df.count()
         cagr = (end/start) ** (1/year) - 1
-        return round(cagr*100, 2)
+        return round(cagr, 4)
 
     def predictFCF(self, df, wacc, yearNum=5):
         cagr = self.calCAGR(df)
@@ -36,21 +36,21 @@ class DCF():
         year = df.index.astype(int)[-1]+1
         
         years = np.arange(year, year+yearNum)
-        nextYearValue = lambda i: round(mean * ((cagr*0.01 + 1) ** (i+1)), 2)
+        nextYearValue = lambda i: round(mean * ((cagr + 1) ** (i+1)), 2)
         predict = [nextYearValue(i) for i, v in enumerate(years)]
         data = {'year': years, 'Free cash flow':predict}
         dfPredict = pd.DataFrame(data)
         dfPredict.set_index('year', inplace=True)
 
         # discount fcf
-        presentValue = lambda i, v: round(v / ((wacc*0.01 + 1) ** (i+1)), 2) 
+        presentValue = lambda i, v: round(v / ((wacc + 1) ** (i+1)), 2) 
         discount = [presentValue(i,v) for i, v in enumerate(predict)]
         dfPredict['fcf present'] = discount
         return dfPredict
 
     def terminalValue(self, wacc, fcfEnd, yearNum=5):
-        v = fcfEnd * ( 1 + self.perpetuityGrowth * 0.01) / (( wacc - self.perpetuityGrowth) * 0.01)
-        vPresent = v / ((1+wacc*0.01) ** yearNum)
+        v = fcfEnd * ( 1 + self.perpetuityGrowth ) / (( wacc - self.perpetuityGrowth))
+        vPresent = v / ((1+wacc) ** yearNum)
         return (round(v,2), round(vPresent, 2))
 
         
