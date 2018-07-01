@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn import linear_model
 
 class DCF():
     def __init__(self):
@@ -30,7 +31,7 @@ class DCF():
         cagr = (end/start) ** (1/year) - 1
         return round(cagr, 4)
 
-    def predictFCF(self, df, wacc, yearNum=5):
+    def predictWithCAGR(self, df, yearNum):
         cagr = self.calCAGR(df)
         mean = df.mean()
         year = df.index.astype(int)[-1]+1
@@ -41,10 +42,38 @@ class DCF():
         data = {'year': years, 'Free cash flow':predict}
         dfPredict = pd.DataFrame(data)
         dfPredict.set_index('year', inplace=True)
+        return dfPredict 
+
+    def predictWithLinearRegression(self, df, yearNum):
+        l = df.count()
+        fitx = np.array(df.index).reshape(l, 1)
+        fity = np.array(df.values).reshape(l, 1)
+
+
+        module = linear_model.LinearRegression()
+        module.fit(fitx, fity)
+
+        year = df.index.astype(int)[-1]+1
+        years = np.arange(year, year+yearNum)
+        predx = years.reshape(yearNum, 1)
+        predy = module.predict(predx)
+        
+        data = {
+            'year': years.ravel(),
+            'Free cash flow': predy.ravel(),
+        }
+        dfPredict = pd.DataFrame(data)
+        dfPredict.set_index('year', inplace=True)
+        return dfPredict 
+
+
+    def predictFCF(self, df, wacc, yearNum=5):
+        #dfPredict = self.predictWithCAGR(df, yearNum) 
+        dfPredict = self.predictWithLinearRegression(df, yearNum) 
 
         # discount fcf
         presentValue = lambda i, v: round(v / ((wacc + 1) ** (i+1)), 2) 
-        discount = [presentValue(i,v) for i, v in enumerate(predict)]
+        discount = [presentValue(i,v) for i, v in enumerate(dfPredict['Free cash flow'])]
         dfPredict['fcf present'] = discount
         return dfPredict
 
@@ -68,7 +97,10 @@ class DCF():
             'costOfEquity': [coe],
             'costOfDebt': [cod],
             'wacc': [wacc],
-            'fcfGrowth': [cagr]
+            'fcfGrowth': [cagr],
+            'marketCap': [mvEquity],
+            'marketDebt': [mvDebt],
+            'taxRate': [taxRate],
         }
         factorReport = pd.DataFrame(factorData)
 
