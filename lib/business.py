@@ -54,7 +54,7 @@ class Business():
         marketCap = self.marketCap()
         marketDebt = 0
         fcf = self.cashflow.df['Free cash flow']
-        factorReport, fcfReport = self.dcf.calculationReport(beta, taxRate, marketCap, marketDebt, fcf, predictYear=5)
+        factorReport, fcfReport = self.dcf.calculationReport(beta, taxRate, marketCap, marketDebt, fcf, predictYear=10)
 
         ## valuation
         fcfPresentSum = fcfReport['fcf present'].sum() + fcfReport['terminal value present'].sum()
