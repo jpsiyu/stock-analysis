@@ -26,6 +26,19 @@ class Business():
         self.quote.fetchData(force)
         log('Fetch all data finish!')
 
+    def debtEquityReport(self):
+        dfDebtEquity = self.balance.df[[
+            'Short-term debt', 
+            'Other long-term liabilities', 
+            "Total stockholders' equity",
+            'Total current assets',
+            'Total current liabilities',
+        ]]
+        dfDebtEquity = dfDebtEquity.apply(pd.to_numeric)
+        dfDebtEquity['负债权益比'] = round((dfDebtEquity['Short-term debt'] + dfDebtEquity['Other long-term liabilities'])/dfDebtEquity["Total stockholders' equity"],2)
+        dfDebtEquity['流动比率'] = round(dfDebtEquity['Total current assets']/dfDebtEquity['Total current liabilities'], 2)
+        return dfDebtEquity
+
     def chartBookValue(self):
         plot_tool.bar(
             self.keyRatio.df.index, 
@@ -47,6 +60,21 @@ class Business():
             title='自由现金流',
         )
 
+    def chartPredictFCF(self, fcfReport):
+        fcf = self.cashflow.df['Free cash flow']
+        yearNum = fcfReport['Free cash flow'].count()
+        
+        dfPredict = self.dcf.predictWithLinearRegression(fcf, yearNum, withPassYear=True) 
+
+        plot_tool.fcfAndPredictFcf(
+            fcf.index, 
+            self.cashflow.df['Free cash flow'],
+            dfPredict.index,
+            dfPredict['Free cash flow'],
+            title1='自由现金流线性回归',
+            title2='自由现金流预测',
+        )
+
     def showDCFReport(self):
         ## dcf calculation
         beta = float(self.quote.df['Beta'].iloc[0])
@@ -54,7 +82,7 @@ class Business():
         marketCap = self.marketCap()
         marketDebt = 0
         fcf = self.cashflow.df['Free cash flow']
-        factorReport, fcfReport = self.dcf.calculationReport(beta, taxRate, marketCap, marketDebt, fcf, predictYear=10)
+        factorReport, fcfReport = self.dcf.calculationReport(beta, taxRate, marketCap, marketDebt, fcf, predictYear=5)
 
         ## valuation
         fcfPresentSum = fcfReport['fcf present'].sum() + fcfReport['terminal value present'].sum()

@@ -44,7 +44,7 @@ class DCF():
         dfPredict.set_index('year', inplace=True)
         return dfPredict 
 
-    def predictWithLinearRegression(self, df, yearNum):
+    def predictWithLinearRegression(self, df, yearNum, withPassYear=False):
         l = df.count()
         fitx = np.array(df.index).reshape(l, 1)
         fity = np.array(df.values).reshape(l, 1)
@@ -53,9 +53,15 @@ class DCF():
         module = linear_model.LinearRegression()
         module.fit(fitx, fity)
 
-        year = df.index.astype(int)[-1]+1
-        years = np.arange(year, year+yearNum)
-        predx = years.reshape(yearNum, 1)
+        if withPassYear:
+            year = df.index.astype(int)[0]
+            predictYearsNum = df.count() + yearNum
+        else:
+            year = df.index.astype(int)[-1]+1
+            predictYearsNum = yearNum
+
+        years = np.arange(year, year+predictYearsNum)
+        predx = years.reshape(predictYearsNum, 1)
         predy = module.predict(predx)
         
         data = {

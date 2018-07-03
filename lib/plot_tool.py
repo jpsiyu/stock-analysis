@@ -38,6 +38,21 @@ def line(x, y, title='', xlabel='', ylabel=''):
     plt.plot(x, y, 'bo')
     plt.show()
 
+def fcfAndPredictFcf(x1, y1, x2, y2, title1='', title2='', xlabel='', ylabel=''):
+    plt.figure(figsize=(16,4))
+    plt.subplot(121)
+    style(title1, xlabel, ylabel, yGrid=True)
+
+    plt.plot(x1, y1)
+    plt.plot(x1, y1, 'bo')
+    x1Len = len(x1)
+    plt.plot(x1, y2.head(x1Len), color='red')
+
+    plt.subplot(122)
+    style(title2, xlabel, ylabel, yGrid=True)
+    plt.plot(x2, y2, color='red')
+    plt.show()
+
 
 def bar(x, y, title='', xlabel='', ylabel=''):
     plt.figure(figsize=(8,4))
